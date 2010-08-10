@@ -54,6 +54,7 @@ sub BUILDARGS {
 sub before_build {
     my $self = shift;
 
+    my $svn = SVN::Client->new;
     if (-d $self->svn_dir) {
         $self->log("using existing directory " . $self->svn_dir);
     } else {
@@ -64,9 +65,23 @@ sub before_build {
     chdir($self->svn_dir) or die "Can't change to the " . $self->svn_dir . " directory -- $!";
     for my $project (keys %{$self->_repos}) {
         my ($url,$rev) = map { $self->_repos->{$project}{$_} } qw/url rev/;
-        $self->log("checking out $project revision $rev");
-        my $svn = SVN::Client->new;
-        $svn->checkout($url, $project, $rev, 1);
+        if (-d $project) {
+            if (-e "$project/.svn") {
+                my $wc_info;
+                $svn->info($project, undef, undef, sub { $wc_info = $_[1] }, 0);
+                if ($wc_info->URL eq $url) {
+                    $self->log("updating $project to revision $rev");
+                    $svn->update($project,$rev,1);
+                } else {
+                    die "$project directory is not an SVN repository for $url (" .$wc_info->URL . ")";
+                }
+            } else {
+                die "$project directory already exists and is not an SVN repository";
+            }
+        } else {
+            $self->log("checking out $project revision $rev");
+            $svn->checkout($url, $project, $rev, 1);
+        }
     }
     chdir($prev_dir) or die "Can't change back to the $prev_dir directory -- $!";
 }
