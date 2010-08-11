@@ -102,8 +102,8 @@ Dist::Zilla::Plugin::SvnObtain - obtain files from a subversion repository befor
 In your F<dist.ini>:
 
   [SvnObtain]
-    ;subdir = url                                   revision
-    parrot  = https://svn.parrot.org/parrot/trunk   48152
+    ;subdir = url                                       revision
+    simile = http://simile-widgets.googlecode.com/svn   1870
 
   [SvnObtain/path/to/some/other/dir]
     blah = http://svn.example.com/repos/my-project
@@ -144,6 +144,14 @@ the path will be created as necessary. Once the directory
 F<libs/javascript> exists, project directories will be created within it
 for F<jquery> and F<simile>. The F<jquery> checkout will be at the HEAD
 revision and the F<simile> checkout will be at revision 2100.
+
+If a directory already exists with the same name as the project directory,
+L<Dist::Zilla::Plugin::SvnObtain> will attempt to re-use the directory
+if it contains a working copy of a subversion repository that is the same
+URL as the one specified for that project directory within F<dist.ini>. 
+If the directory is not a subversion working copy or the URL is different,
+L<Dist::Zilla::Plugin::SvnObtain> will cause L<Dist::Zilla> to exit with
+an appropriate error message.
 
 =head1 AUTHOR
 
